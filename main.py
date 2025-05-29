@@ -86,14 +86,16 @@ async def on_ready():
     members = [member async for member in guild.fetch_members(limit=None)]
 
     with open("discord_members.csv", "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=["User", "Global Display Name", "ID", "Nickname"])
+        writer = csv.DictWriter(f, fieldnames=["User", "Global Display Name", "ID", "Nickname", "Roles"])
         writer.writeheader()
         for member in members:
+            roles = [role.name for role in member.roles if role.name != "@everyone"]
             writer.writerow({
                 "User": member.name,
                 "Global Display Name": member.global_name or "",
                 "ID": member.id,
-                "Nickname": member.nick or ""
+                "Nickname": member.nick or "",
+                "Roles": ", ".join(roles)
             })
 
     print("[INFO] Member list exported to discord_members.csv")
