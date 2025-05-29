@@ -34,6 +34,7 @@ def index():
 def export_members():
     def run_bot():
         asyncio.run(run_export())  # ✅ Fixed: Use asyncio.run()
+        asyncio.get_event_loop().create_task(coro)
 
     Thread(target=run_bot).start()
     return jsonify({"status": "started"}), 202
