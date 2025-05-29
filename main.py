@@ -26,22 +26,23 @@ intents.guilds = True
 client = discord.Client(intents=intents)
 app = Flask(__name__)
 
+
 @app.route('/')
 def index():
     return "Discord Export Bot is running."
 
+
 @app.route('/export', methods=['POST'])
 def export_members():
-    def run_bot():
-        coro = run_export()
-        asyncio.get_event_loop().create_task(coro)
-
-    Thread(target=run_bot).start()
+    # Start new thread that runs the bot
+    Thread(target=lambda: asyncio.run(run_export())).start()
     return jsonify({"status": "started"}), 202
+
 
 async def run_export():
     await client.login(BOT_TOKEN)
     await client.connect()
+
 
 async def push_to_github():
     api_url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{GITHUB_REPO}/contents/{GITHUB_FILEPATH}"
@@ -50,7 +51,7 @@ async def push_to_github():
         content = f.read()
         encoded = base64.b64encode(content).decode()
 
-    # Check if the file already exists to get the SHA
+    # Get the current SHA of the file (if it exists)
     response = requests.get(api_url, headers={"Authorization": f"token {GITHUB_TOKEN}"})
     sha = response.json().get("sha") if response.status_code == 200 else None
 
@@ -69,6 +70,7 @@ async def push_to_github():
         print("[INFO] File pushed to GitHub")
     else:
         print(f"[ERROR] GitHub push failed: {r.status_code}, {r.text}")
+
 
 @client.event
 async def on_ready():
@@ -97,6 +99,7 @@ async def on_ready():
     print("[INFO] Member list exported to discord_members.csv")
     await push_to_github()
     await client.close()
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
