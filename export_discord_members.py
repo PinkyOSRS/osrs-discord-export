@@ -1,18 +1,38 @@
-import discord
+import os
 import csv
+import discord
 import asyncio
+from flask import Flask, request, jsonify
+from threading import Thread
 
-# === Replace with your bot token ===
 BOT_TOKEN = os.environ.get("DISCORD_TOKEN")
-
-# === Replace with your server (guild) ID ===
-GUILD_ID = 1373786836077514783  # Theoatrix Clan
+GUILD_ID = int(os.environ.get("DISCORD_GUILD_ID"))
 
 intents = discord.Intents.default()
 intents.members = True
 intents.guilds = True
 
 client = discord.Client(intents=intents)
+app = Flask(__name__)
+
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
+
+@app.route('/')
+def index():
+    return "Discord Export Bot is running."
+
+@app.route('/export', methods=['POST'])
+def export_members():
+    def run_bot():
+        loop.run_until_complete(run_export())
+
+    Thread(target=run_bot).start()
+    return jsonify({"status": "started"}), 202
+
+async def run_export():
+    await client.login(BOT_TOKEN)
+    await client.connect()
 
 @client.event
 async def on_ready():
@@ -25,7 +45,6 @@ async def on_ready():
         return
 
     print(f"[INFO] Fetching members from: {guild.name} ({guild.id})")
-
     members = [member async for member in guild.fetch_members(limit=None)]
 
     with open("discord_members.csv", "w", newline="", encoding="utf-8") as f:
@@ -42,5 +61,5 @@ async def on_ready():
     print("[INFO] Member list exported to discord_members.csv")
     await client.close()
 
-client.run(BOT_TOKEN)
-
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=10000)
