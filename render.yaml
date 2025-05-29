@@ -1,1 +1,12 @@
+services:
+  - type: web
+    name: discord-export-service
+    env: python
+    buildCommand: ""
+    startCommand: gunicorn main:app --bind 0.0.0.0:10000
+    envVars:
+      - key: DISCORD_TOKEN
+        sync: false
+      - key: DISCORD_GUILD_ID
+        sync: false
 
