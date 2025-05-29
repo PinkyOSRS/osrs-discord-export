@@ -33,7 +33,7 @@ def index():
 @app.route('/export', methods=['POST'])
 def export_members():
     def run_bot():
-        asyncio.run(run_export())  # ✅ Fixed: Use asyncio.run()
+        coro = run_export()
         asyncio.get_event_loop().create_task(coro)
 
     Thread(target=run_bot).start()
