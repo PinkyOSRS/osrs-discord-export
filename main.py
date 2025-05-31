@@ -34,10 +34,16 @@ def index():
 
 @app.route('/export', methods=['POST'])
 def export_members():
-    # Start new thread that runs the bot
-    Thread(target=lambda: asyncio.run(run_export())).start()
-    return jsonify({"status": "started"}), 202
+    def run_bot():
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            loop.run_until_complete(run_export())
+        finally:
+            loop.close()
 
+    Thread(target=run_bot).start()
+    return jsonify({"status": "started"}), 202
 
 async def run_export():
     await client.login(BOT_TOKEN)
